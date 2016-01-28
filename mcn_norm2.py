@@ -22,7 +22,8 @@ def load_go_term(graph_choice):
 			graph_go_term[i][seq[0]]=seq[1:]
 			seq=f1.readline()
 		#f1=open("fisher_test/"+graph_choice+"/"+i+"fisher.txt","r")
-		f1=open("inf_cont_new/proteome_ic/"+i+"_count.txt","r")
+		f1=open("fisher_test2/"+i+"fisher.txt","r")
+
 		seq=f1.readline()
 		while(seq!=""):
 			seq=seq.strip().split("\t")
@@ -57,7 +58,16 @@ def expression(file,tissue):
 	for i in tissue_expr:
 		tissue_expr[i]=tissue_expr[i]/len(tissue)
 	return tissue_expr,tissue_value
-
+def expression_paxdb(file):
+	tissue_expr={}
+	f1=open(file,"r")
+	seq=f1.readline()
+	seq=f1.readline()
+	while(seq!=""):
+		seq=seq.strip().split("\t")
+		tissue_expr[seq[0]]=float(seq[2])
+		seq=f1.readline()
+	return tissue_expr
 def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
 	graph_go_term,fisher_one_occurence=load_go_term(graph_choice)
 	path={}
@@ -124,7 +134,7 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
 					else:
 						val1=scipy.stats.mstats.gmean(path_exp)
 					val2=scipy.stats.mstats.gmean(path_coex)
-					
+
 					total_prob=math.sqrt(val1*val2)
 					path_count[key][total_prob]=node_list
 					#print key,node_list,total_prob,count
@@ -269,6 +279,7 @@ else:
 	print val
 	val=map(int, val.split(","))
 tissue_expr,tissue_value=expression(folder+graph_choice+"/PA_basal.txt",val)
-print tissue_expr["Q9BW62"]
+tissue_expr=expression_paxdb("RECTUM.txt")
+
 mcn(nodes,graph.nodes(),graph,tissue_expr,graph_choice,start_nodes)
 

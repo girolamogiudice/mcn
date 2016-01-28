@@ -5,8 +5,6 @@ import numpy as np
 import time
 import operator,math
 from operator import itemgetter
-
-import matplotlib.pyplot as plt
 def load_go_term(graph_choice):
 	graph_go_term={}
 	fisher_one_occurence={}
@@ -25,13 +23,13 @@ def load_go_term(graph_choice):
 			seq=f1.readline()
 		#f1=open("fisher_test/"+graph_choice+"/"+i+"fisher.txt","r")
 		#f1=open("inf_cont_new/proteome_ic/"+i+"_count.txt","r")
-		f1=open("HEART/"+i+"_count.txt","r")
+		f1=open("RECTUM/"+i+"_count.txt","r")
 		seq=f1.readline()
 		while(seq!=""):
 			seq=seq.strip().split("\t")
 			fisher_one_occurence[i][seq[0]]=float(seq[1])
 			seq=f1.readline()
-		f1=open("inf_cont_new/proteome_ic/"+i+"_count.txt","r")
+		f1=open("fisher_test2/"+i+"fisher.txt","r")
 		seq=f1.readline()
 		while(seq!=""):
 			seq=seq.strip().split("\t")
@@ -73,7 +71,7 @@ def expression_paxdb(file):
 	seq=f1.readline()
 	while(seq!=""):
 		seq=seq.strip().split("\t")
-		tissue_expr[seq[0]]=float(seq[3])
+		tissue_expr[seq[0]]=float(seq[2])
 		seq=f1.readline()
 	return tissue_expr
 def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
@@ -134,7 +132,7 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
 								path_exp.append(tissue_expr[node_list[k]])
 							else:
 								path_exp.append(0.0001)
-							
+					
 					removable.append(node_list[1:-1])
 					seq=f1.readline()
 					if len(path_exp)==0:
@@ -142,13 +140,15 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
 					else:
 						val1=scipy.stats.mstats.gmean(path_exp)
 					val2=scipy.stats.mstats.gmean(path_coex)
-					
 					total_prob=math.sqrt(val1*val2)
 					path_count[key][total_prob]=node_list
 					#print key,node_list,total_prob,count
 					count=count+1
+	#flow=[]
+	#for j in path_count:
+	#	flow.append(path_count[j][sorted(path_count[j])[::-1][0]])
 	nodes_ic=[]
-	flow=[]
+	
 
 	#graph_go_term,fisher_one_occurence
 	for i in path_count:
@@ -168,8 +168,7 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
 					temp_R=[]
 					temp_K=[]
 
-					if count==0:
-						 flow.append(k[1])
+					
 					for j in k[1]:
 						if graph_go_term["P"].has_key(j):
 							temp_P.extend(graph_go_term["P"][j])
@@ -191,37 +190,39 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
 					c=0
 					for j in set(temp_P):
 						if fisher_one_occurence["P"].has_key(j):
-							value_p=value_p+ fisher_one_occurence["P"][j]
+							value_p=value_p+ fisher_one_occurence2["P"][j]
+							
 						else:
 							c=c+1
 							#value_p=value_p+ fisher_one_occurence2["P"][j]
 					for j in set(temp_C):
 						if fisher_one_occurence["C"].has_key(j):
-							value_c=value_c+ fisher_one_occurence["C"][j]
+							value_c=value_c+ fisher_one_occurence2["C"][j]
 						else:
 							c=c+1
 							#value_c=value_c+ fisher_one_occurence2["C"][j]
 					for j in set(temp_R):
 						if fisher_one_occurence["R"].has_key(j):
-							value_r=value_r+ fisher_one_occurence["R"][j]
+							value_r=value_r+ fisher_one_occurence2["R"][j]
 						else:
 							c=c+1
 							#value_r=value_r+ fisher_one_occurence2["R"][j]
 					for j in set(temp_F):
 						if fisher_one_occurence["F"].has_key(j):
-							value_f=value_f+ fisher_one_occurence["F"][j]
+							value_f=value_f+ fisher_one_occurence2["F"][j]
+							
 						else:
 							c=c+1
 							#value_r=value_r+ fisher_one_occurence2["F"][j]
 					for j in set(temp_K):
 						if fisher_one_occurence["K"].has_key(j):
-							value_k=value_k+ fisher_one_occurence["K"][j]
+							value_k=value_k+ fisher_one_occurence2["K"][j]
 						else:
 							c=c+1
 							#value_r=value_r+ fisher_one_occurence2["K"][j]
 					#print k[1],value_p+value_c+value_r+value_f+value_k,float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
 																																														
-					go_value=(value_p+value_c+value_r+value_f+value_k)/float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K)-c)
+					go_value=(value_p+value_c+value_r+value_f+value_k)/float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
 					#go_value=(value_p+value_c+value_f)/float(len(temp_C)+len(temp_P)+len(temp_F))
 					#print k[1],value_p+value_c+value_r+value_f+value_k,float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K)),go_value
 					if go_value<nodes_ic_value[i]:
@@ -233,9 +234,10 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
 	#for i in nodes_ic_path:
 	#	print i,nodes_ic_path[i],nodes_ic_value[i]
 	nodes_ic=list(set(sum(nodes_ic_path.values(),[])+start_nodes))
-	flow=list(set(sum(flow,[])))
+	
+	#flow=list(set(sum(flow,[])+start_nodes))
 	print "nodes_ic",len(nodes_ic)
-	print "flow",len(flow)
+	#print "flow",len(flow)
 	fishertest.load(nodes_ic,0.05,["C","P","F","R","K","O","KDr","KDi","DB","Or","VH"],graph_choice,path_def="ic2/",single=sys.argv[3])
 	#fishertest.load(flow,0.05,["C","P","F","R","K","O","KDr","KDi","DB","Or","VH"],graph_choice,path_def="flow/",single=sys.argv[3])
 
@@ -301,7 +303,7 @@ else:
 	val=map(int, val.split(","))
 tissue_expr,tissue_value=expression(folder+graph_choice+"/PA_basal.txt",val)
 
-tissue_expr=expression_paxdb("COLON.txt")
+tissue_expr=expression_paxdb("RECTUM.txt")
 
 
 mcn(nodes,graph.nodes(),graph,tissue_expr,graph_choice,start_nodes)
