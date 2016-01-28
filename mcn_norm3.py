@@ -9,11 +9,12 @@ def load_go_term(graph_choice):
 	graph_go_term={}
 	fisher_one_occurence={}
 	fisher_one_occurence2={}
-
+	coex_go_terms={}
 	for i in ["C","P","F","R","K"]:
 		graph_go_term[i]={}
 		fisher_one_occurence[i]={}
 		fisher_one_occurence2[i]={}
+		coex_go_terms[i]={}
 	for i in ["C","P","F","R","K"]:
 		f1=open("../../web2py_test_new_version/applications/magneto/data/"+graph_choice+"/human/"+i+".txt","r")
 		seq=f1.readline()
@@ -29,13 +30,21 @@ def load_go_term(graph_choice):
 			seq=seq.strip().split("\t")
 			fisher_one_occurence[i][seq[0]]=float(seq[1])
 			seq=f1.readline()
+		f1=open("RECTUM/"+i,"r")
+		seq=f1.readline()
+		while(seq!=""):
+			seq=seq.strip().split("\t")
+			coex_go_terms[i][(seq[0],seq[1])]=float(seq[2])
+			coex_go_terms[i][(seq[1],seq[0])]=float(seq[2])
+			seq=f1.readline()
 		f1=open("fisher_test2/"+i+"fisher.txt","r")
 		seq=f1.readline()
 		while(seq!=""):
 			seq=seq.strip().split("\t")
 			fisher_one_occurence2[i][seq[0]]=float(seq[1])
 			seq=f1.readline()
-	return graph_go_term,fisher_one_occurence,fisher_one_occurence2
+	
+	return graph_go_term,fisher_one_occurence,fisher_one_occurence2,coex_go_terms
 
 def load_input_list(file):
 	f1=open(file,"r")
@@ -75,7 +84,7 @@ def expression_paxdb(file):
 		seq=f1.readline()
 	return tissue_expr
 def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
-	graph_go_term,fisher_one_occurence,fisher_one_occurence2=load_go_term(graph_choice)
+	graph_go_term,fisher_one_occurence,fisher_one_occurence2,coex_go_term=load_go_term(graph_choice)
 	path={}
 	removable=[]
 	path_prob={}
@@ -167,7 +176,11 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
 					temp_F=[]
 					temp_R=[]
 					temp_K=[]
-
+					coex_temp_P=[]
+					coex_temp_C=[]
+					coex_temp_F=[]
+					coex_temp_R=[]
+					coex_temp_K=[]
 					
 					for j in k[1]:
 						if graph_go_term["P"].has_key(j):
@@ -180,8 +193,42 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
 							temp_C.extend(graph_go_term["C"][j])
 						if graph_go_term["F"].has_key(j):
 							temp_F.extend(graph_go_term["F"][j])
-																											
-
+					"""																						
+					coex_temp_P=list(itertools.combinations(temp_P,2))
+					coex_temp_F=list(itertools.combinations(temp_F,2))
+					coex_temp_C=list(itertools.combinations(temp_C,2))
+					coex_temp_R=list(itertools.combinations(temp_R,2))
+					coex_temp_K=list(itertools.combinations(temp_K,2))
+					value_p_coex=0.0
+					value_c_coex=0.0
+					value_f_coex=0.0
+					value_r_coex=0.0
+					value_k_coex=0.0
+					go_value_coex=0.0
+					c=0
+					for j in coex_temp_P:
+						if coex_go_term["P"].has_key(j):
+							value_p_coex=value_p_coex+ coex_go_term["P"][j]
+							c=c+1
+					for j in coex_temp_P:
+						if coex_go_term["C"].has_key(j):
+							value_c_coex=value_c_coex+ coex_go_term["C"][j]
+							c=c+1
+					for j in coex_temp_P:
+						if coex_go_term["F"].has_key(j):
+							value_f_coex=value_f_coex+ coex_go_term["F"][j]
+							c=c+1
+					for j in coex_temp_P:
+						if coex_go_term["K"].has_key(j):
+							value_k_coex=value_k_coex+ coex_go_term["K"][j]
+							c=c+1
+					for j in coex_temp_P:
+						if coex_go_term["R"].has_key(j):
+							value_r_coex=value_r_coex+ coex_go_term["R"][j]
+							c=c+1
+					if c!=0:
+						go_value_coex=(value_p_coex+value_c_coex+value_r_coex+value_f_coex+value_k_coex)/float(c)
+					"""
 					value_p=0.0
 					value_c=0.0
 					value_f=0.0
@@ -223,6 +270,8 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
 					#print k[1],value_p+value_c+value_r+value_f+value_k,float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
 																																														
 					go_value=(value_p+value_c+value_r+value_f+value_k)/float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
+					#go_value=go_value+go_value_coex
+					#print go_value,go_value_coex
 					#go_value=(value_p+value_c+value_f)/float(len(temp_C)+len(temp_P)+len(temp_F))
 					#print k[1],value_p+value_c+value_r+value_f+value_k,float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K)),go_value
 					if go_value<nodes_ic_value[i]:
