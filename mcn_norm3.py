@@ -73,14 +73,14 @@ def expression(file,tissue):
 	for i in tissue_expr:
 		tissue_expr[i]=tissue_expr[i]/len(tissue)
 	return tissue_expr,tissue_value
-def expression_paxdb(file):
+def expression_paxdb(file,graph):
 	tissue_expr={}
-	f1=open(file,"r")
+	f1=open("../db/generate_svm_model/"+graph+"/"+file+".txt","r")
 	seq=f1.readline()
 	seq=f1.readline()
 	while(seq!=""):
 		seq=seq.strip().split("\t")
-		tissue_expr[seq[0]]=float(seq[2])
+		tissue_expr[seq[0]]=float(seq[4])
 		seq=f1.readline()
 	return tissue_expr
 def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
@@ -268,8 +268,9 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
 							c=c+1
 							#value_r=value_r+ fisher_one_occurence2["K"][j]
 					#print k[1],value_p+value_c+value_r+value_f+value_k,float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
-																																														
+					#print k[1],float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K)),value_p+value_c+value_r+value_f+value_k,c																																								
 					go_value=(value_p+value_c+value_r+value_f+value_k)/float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
+					print k[1],float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K)),c,value_p+value_c+value_r+value_f+value_k,go_value
 					#go_value=go_value+go_value_coex
 					#print go_value,go_value_coex
 					#go_value=(value_p+value_c+value_f)/float(len(temp_C)+len(temp_P)+len(temp_F))
@@ -331,6 +332,8 @@ GTEx={'42': 'Kidney - Cortex', '48': 'Colon - Sigmoid', '43': 'Brain - Cerebellu
 	  '19': 'Brain - Cerebellar Hemisphere', '18': 'Bladder', '31': 'Spleen', '30': 'Skin - Sun Exposed (Lower leg)', '37': 'Uterus', 
 	  '36': 'Brain - Spinal cord (cervical c-1)', '35': 'Artery - Tibial', '34': 'Brain - Cortex', '33': 'Heart - Left Ventricle', '32': 'Brain - Hippocampus',
 	  '50': 'Brain - Substantia nigra'}
+pax_db={0:"BRAIN",1:"COLON",2:"FEMALE_GONAD",3:"HEART",4:"LIVER",5:"PANCREAS",6:"PLASMA",7:"PROSTATE_GLAND",8:"SALIVA",9:"TESTIS",10:"UTERUS",
+11:"CELL_LINE",12:"ESOPHAGUS",13:"GALL_BLADDER",14:"KIDNEY",15:"LUNG",16:"PLACENTA",17:"PLATELET",18:"RECTUM",19:"SKIN",20:"URINE",21:"WHOLE_ORGANISM"}
 
 graph=nx.read_gpickle(sys.argv[1])
 graph_nodes=graph.nodes()
@@ -342,18 +345,18 @@ fishertest.load(list(set(start_nodes)),0.05,["C","P","F","R","K","O","KDr","KDi"
 nodes=list(set(start_nodes).intersection(set(graph_nodes)))
 
 folder="tissue_expr_norm/"
-for i in range(0,48,1):
-	print str(i)+" "+pa_basal[i]
+for i in range(0,21,1):
+	print str(i)+" "+pax_db[i]
 val=raw_input()
 if "," not in val:
 	val=map(int,str(val).split())
 else:
-	print val
+	
 	val=map(int, val.split(","))
-tissue_expr,tissue_value=expression(folder+graph_choice+"/PA_basal.txt",val)
 
-tissue_expr=expression_paxdb("RECTUM.txt")
+#tissue_expr,tissue_value=expression(folder+graph_choice+"/PA_basal.txt",val)
+tissue_expr=expression_paxdb(pax_db[int(val[0])],graph_choice)
 
 
-mcn(nodes,graph.nodes(),graph,tissue_expr,graph_choice,start_nodes)
+#mcn(nodes,graph.nodes(),graph,tissue_expr,graph_choice,start_nodes)
 
