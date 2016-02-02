@@ -65,7 +65,7 @@ def expression_paxdb(file):
 	seq=f1.readline()
 	while(seq!=""):
 		seq=seq.strip().split("\t")
-		tissue_expr[seq[0]]=float(seq[2])
+		tissue_expr[seq[0]]=float(seq[3])
 		seq=f1.readline()
 	return tissue_expr
 def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
@@ -279,7 +279,7 @@ else:
 	print val
 	val=map(int, val.split(","))
 tissue_expr,tissue_value=expression(folder+graph_choice+"/PA_basal.txt",val)
-tissue_expr=expression_paxdb("RECTUM.txt")
+tissue_expr=expression_paxdb("HEART.txt")
 
 mcn(nodes,graph.nodes(),graph,tissue_expr,graph_choice,start_nodes)
 

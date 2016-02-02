@@ -24,19 +24,13 @@ def load_go_term(graph_choice):
 			seq=f1.readline()
 		#f1=open("fisher_test/"+graph_choice+"/"+i+"fisher.txt","r")
 		#f1=open("inf_cont_new/proteome_ic/"+i+"_count.txt","r")
-		f1=open("RECTUM/"+i+"_count.txt","r")
+		f1=open("HEART/"+i+"_count.txt","r")
 		seq=f1.readline()
 		while(seq!=""):
 			seq=seq.strip().split("\t")
 			fisher_one_occurence[i][seq[0]]=float(seq[1])
 			seq=f1.readline()
-		f1=open("RECTUM/"+i,"r")
-		seq=f1.readline()
-		while(seq!=""):
-			seq=seq.strip().split("\t")
-			coex_go_terms[i][(seq[0],seq[1])]=float(seq[2])
-			coex_go_terms[i][(seq[1],seq[0])]=float(seq[2])
-			seq=f1.readline()
+
 		f1=open("fisher_test2/"+i+"fisher.txt","r")
 		seq=f1.readline()
 		while(seq!=""):
@@ -44,7 +38,7 @@ def load_go_term(graph_choice):
 			fisher_one_occurence2[i][seq[0]]=float(seq[1])
 			seq=f1.readline()
 	
-	return graph_go_term,fisher_one_occurence,fisher_one_occurence2,coex_go_terms
+	return graph_go_term,fisher_one_occurence,fisher_one_occurence2
 
 def load_input_list(file):
 	f1=open(file,"r")
@@ -84,7 +78,7 @@ def expression_paxdb(file,graph):
 		seq=f1.readline()
 	return tissue_expr
 def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
-	graph_go_term,fisher_one_occurence,fisher_one_occurence2,coex_go_term=load_go_term(graph_choice)
+	graph_go_term,fisher_one_occurence,fisher_one_occurence2=load_go_term(graph_choice)
 	path={}
 	removable=[]
 	path_prob={}
@@ -134,9 +128,9 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
 					for k in range(len(node_list[0:-1])):
 									
 						if k==0:
-							path_coex.append(graph[node_list[k]][node_list[k+1]]["capacity"])
+							path_coex.append(graph[node_list[k]][node_list[k+1]]["coex"][2])
 						if k!=0:
-							path_coex.append(graph[node_list[k]][node_list[k+1]]["capacity"])
+							path_coex.append(graph[node_list[k]][node_list[k+1]]["coex"][2])
 							if tissue_expr.has_key(node_list[k]):
 								path_exp.append(tissue_expr[node_list[k]])
 							else:
@@ -358,5 +352,5 @@ else:
 tissue_expr=expression_paxdb(pax_db[int(val[0])],graph_choice)
 
 
-#mcn(nodes,graph.nodes(),graph,tissue_expr,graph_choice,start_nodes)
+mcn(nodes,graph.nodes(),graph,tissue_expr,graph_choice,start_nodes)
 
