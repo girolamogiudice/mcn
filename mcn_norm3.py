@@ -5,7 +5,8 @@ import numpy as np
 import time
 import operator,math
 from operator import itemgetter
-def load_go_term(graph_choice):
+import matplotlib.pyplot as plt
+def load_go_term(graph_choice,tissue):
 	graph_go_term={}
 	fisher_one_occurence={}
 	fisher_one_occurence2={}
@@ -24,11 +25,12 @@ def load_go_term(graph_choice):
 			seq=f1.readline()
 		#f1=open("fisher_test/"+graph_choice+"/"+i+"fisher.txt","r")
 		#f1=open("inf_cont_new/proteome_ic/"+i+"_count.txt","r")
-		f1=open("HEART/"+i+"_count.txt","r")
+		f1=open("../db/generate_svm_model/"+graph_choice+"_db_prob/"+tissue+"/"+i+"_prob.txt","r")
+		seq=f1.readline()
 		seq=f1.readline()
 		while(seq!=""):
 			seq=seq.strip().split("\t")
-			fisher_one_occurence[i][seq[0]]=float(seq[1])
+			fisher_one_occurence[i][seq[0]]=float(seq[3])
 			seq=f1.readline()
 
 		f1=open("fisher_test2/"+i+"fisher.txt","r")
@@ -77,8 +79,8 @@ def expression_paxdb(file,graph):
 		tissue_expr[seq[0]]=float(seq[4])
 		seq=f1.readline()
 	return tissue_expr
-def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
-	graph_go_term,fisher_one_occurence,fisher_one_occurence2=load_go_term(graph_choice)
+def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue):
+	graph_go_term,fisher_one_occurence,fisher_one_occurence2=load_go_term(graph_choice,tissue)
 	path={}
 	removable=[]
 	path_prob={}
@@ -93,7 +95,7 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
 	for i in combination:
 		path_value[i]=0.0
 		path_count[i]={}
-		nodes_ic_value[i]=10
+		nodes_ic_value[i]=-1
 		nodes_ic_path[i]=[]
 		f1=open("../../web2py_test_new_version/applications/magneto/data/"+graph_choice+"/path/index/"+i[0]+".txt","r")
 		seq=f1.readline()
@@ -231,46 +233,50 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
 					c=0
 					for j in set(temp_P):
 						if fisher_one_occurence["P"].has_key(j):
-							value_p=value_p+ fisher_one_occurence2["P"][j]
-							
+							value_p=value_p+ fisher_one_occurence["P"][j]
+							#coex_temp_P.append(fisher_one_occurence["P"][j])
 						else:
 							c=c+1
 							#value_p=value_p+ fisher_one_occurence2["P"][j]
+
 					for j in set(temp_C):
 						if fisher_one_occurence["C"].has_key(j):
-							value_c=value_c+ fisher_one_occurence2["C"][j]
+							value_c=value_c+ fisher_one_occurence["C"][j]
 						else:
 							c=c+1
 							#value_c=value_c+ fisher_one_occurence2["C"][j]
 					for j in set(temp_R):
 						if fisher_one_occurence["R"].has_key(j):
-							value_r=value_r+ fisher_one_occurence2["R"][j]
+							value_r=value_r+ fisher_one_occurence["R"][j]
 						else:
 							c=c+1
 							#value_r=value_r+ fisher_one_occurence2["R"][j]
 					for j in set(temp_F):
 						if fisher_one_occurence["F"].has_key(j):
-							value_f=value_f+ fisher_one_occurence2["F"][j]
+							value_f=value_f+ fisher_one_occurence["F"][j]
 							
 						else:
 							c=c+1
 							#value_r=value_r+ fisher_one_occurence2["F"][j]
 					for j in set(temp_K):
 						if fisher_one_occurence["K"].has_key(j):
-							value_k=value_k+ fisher_one_occurence2["K"][j]
+							value_k=value_k+ fisher_one_occurence["K"][j]
 						else:
 							c=c+1
+
 							#value_r=value_r+ fisher_one_occurence2["K"][j]
 					#print k[1],value_p+value_c+value_r+value_f+value_k,float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
 					#print k[1],float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K)),value_p+value_c+value_r+value_f+value_k,c																																								
-					go_value=(value_p+value_c+value_r+value_f+value_k)/float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
-					print k[1],float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K)),c,value_p+value_c+value_r+value_f+value_k,go_value
+					go_value=(value_p+value_c+value_r+value_f+value_k)#/float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
+					
+					print k[1],len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K),c,value_p+value_c+value_r+value_f+value_k,go_value#,nodes_ic_value[i]
 					#go_value=go_value+go_value_coex
 					#print go_value,go_value_coex
 					#go_value=(value_p+value_c+value_f)/float(len(temp_C)+len(temp_P)+len(temp_F))
 					#print k[1],value_p+value_c+value_r+value_f+value_k,float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K)),go_value
-					if go_value<nodes_ic_value[i]:
+					if go_value>nodes_ic_value[i]:
 						nodes_ic_value[i]=go_value
+						print k[1],nodes_ic_value[i]
 						nodes_ic_path[i]=k[1]
 						#print i,k[1],go_value
 					#print i,k[1],k[0],go_value,float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F))
@@ -352,5 +358,5 @@ else:
 tissue_expr=expression_paxdb(pax_db[int(val[0])],graph_choice)
 
 
-mcn(nodes,graph.nodes(),graph,tissue_expr,graph_choice,start_nodes)
+mcn(nodes,graph.nodes(),graph,tissue_expr,graph_choice,start_nodes,pax_db[int(val[0])])
 
