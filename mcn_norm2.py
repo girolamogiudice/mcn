@@ -68,6 +68,7 @@ def expression_paxdb(file):
 		tissue_expr[seq[0]]=float(seq[3])
 		seq=f1.readline()
 	return tissue_expr
+f5=open("ic/nodes_graph.txt","w")
 def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
 	graph_go_term,fisher_one_occurence=load_go_term(graph_choice)
 	path={}
@@ -174,7 +175,7 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
 						if graph_go_term["F"].has_key(j):
 							temp_F.extend(graph_go_term["F"][j])
 																											
-
+					print k[1],len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K)
 					value_p=0.0
 					value_c=0.0
 					value_f=0.0
@@ -205,6 +206,7 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes):
 					#go_value=(value_p+value_c+value_r+value_f)/float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F))
 					if go_value<nodes_ic_value[i]:
 						nodes_ic_value[i]=go_value
+						f5.write("\t".join(k[1])+"\t"+str(go_value)+"\t"+str(value_p+value_c+value_r+value_f+value_k)+"\t"+str(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))+"\n")
 						nodes_ic_path[i]=k[1]
 						#print i,k[1],go_value
 					#print i,k[1],k[0],go_value,float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F))
@@ -279,7 +281,7 @@ else:
 	print val
 	val=map(int, val.split(","))
 tissue_expr,tissue_value=expression(folder+graph_choice+"/PA_basal.txt",val)
-tissue_expr=expression_paxdb("COLON.txt")
+tissue_expr=expression_paxdb("RECTUM.txt")
 
 mcn(nodes,graph.nodes(),graph,tissue_expr,graph_choice,start_nodes)
 

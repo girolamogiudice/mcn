@@ -76,9 +76,11 @@ def expression_paxdb(file,graph):
 	seq=f1.readline()
 	while(seq!=""):
 		seq=seq.strip().split("\t")
-		tissue_expr[seq[0]]=float(seq[4])
+		tissue_expr[seq[0]]=float(seq[3])
 		seq=f1.readline()
 	return tissue_expr
+
+f5=open("ic2/nodes_graph.txt","w")
 def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue):
 	graph_go_term,fisher_one_occurence,fisher_one_occurence2=load_go_term(graph_choice,tissue)
 	path={}
@@ -95,7 +97,7 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue):
 	for i in combination:
 		path_value[i]=0.0
 		path_count[i]={}
-		nodes_ic_value[i]=-1
+		nodes_ic_value[i]=0
 		nodes_ic_path[i]=[]
 		f1=open("../../web2py_test_new_version/applications/magneto/data/"+graph_choice+"/path/index/"+i[0]+".txt","r")
 		seq=f1.readline()
@@ -130,9 +132,9 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue):
 					for k in range(len(node_list[0:-1])):
 									
 						if k==0:
-							path_coex.append(graph[node_list[k]][node_list[k+1]]["coex"][2])
+							path_coex.append(graph[node_list[k]][node_list[k+1]]["coex"][1])
 						if k!=0:
-							path_coex.append(graph[node_list[k]][node_list[k+1]]["coex"][2])
+							path_coex.append(graph[node_list[k]][node_list[k+1]]["coex"][1])
 							if tissue_expr.has_key(node_list[k]):
 								path_exp.append(tissue_expr[node_list[k]])
 							else:
@@ -157,6 +159,7 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue):
 
 	#graph_go_term,fisher_one_occurence
 	for i in path_count:
+		
 		if len(path_count[i])==1:
 			nodes_ic_path[i]=path_count[i].values()[0]
 			#flow.append(path_count[i].values()[0])
@@ -164,19 +167,16 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue):
 			count=0	
 			#max_score=sorted(path_count[i].keys())[::-1][0]
 			mean=np.mean(path_count[i].keys())
-			for k in sorted(path_count[i].items(), key=itemgetter(0))[::-1]:
+			sorted_path_count=sorted(path_count[i].items(), key=itemgetter(0))[::-1]
+			for k in sorted_path_count:
 				
 				if k[0]>=mean:
+
 					temp_C=[]
 					temp_P=[]
 					temp_F=[]
 					temp_R=[]
 					temp_K=[]
-					coex_temp_P=[]
-					coex_temp_C=[]
-					coex_temp_F=[]
-					coex_temp_R=[]
-					coex_temp_K=[]
 					
 					for j in k[1]:
 						if graph_go_term["P"].has_key(j):
@@ -189,48 +189,16 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue):
 							temp_C.extend(graph_go_term["C"][j])
 						if graph_go_term["F"].has_key(j):
 							temp_F.extend(graph_go_term["F"][j])
-					"""																						
-					coex_temp_P=list(itertools.combinations(temp_P,2))
-					coex_temp_F=list(itertools.combinations(temp_F,2))
-					coex_temp_C=list(itertools.combinations(temp_C,2))
-					coex_temp_R=list(itertools.combinations(temp_R,2))
-					coex_temp_K=list(itertools.combinations(temp_K,2))
-					value_p_coex=0.0
-					value_c_coex=0.0
-					value_f_coex=0.0
-					value_r_coex=0.0
-					value_k_coex=0.0
-					go_value_coex=0.0
-					c=0
-					for j in coex_temp_P:
-						if coex_go_term["P"].has_key(j):
-							value_p_coex=value_p_coex+ coex_go_term["P"][j]
-							c=c+1
-					for j in coex_temp_P:
-						if coex_go_term["C"].has_key(j):
-							value_c_coex=value_c_coex+ coex_go_term["C"][j]
-							c=c+1
-					for j in coex_temp_P:
-						if coex_go_term["F"].has_key(j):
-							value_f_coex=value_f_coex+ coex_go_term["F"][j]
-							c=c+1
-					for j in coex_temp_P:
-						if coex_go_term["K"].has_key(j):
-							value_k_coex=value_k_coex+ coex_go_term["K"][j]
-							c=c+1
-					for j in coex_temp_P:
-						if coex_go_term["R"].has_key(j):
-							value_r_coex=value_r_coex+ coex_go_term["R"][j]
-							c=c+1
-					if c!=0:
-						go_value_coex=(value_p_coex+value_c_coex+value_r_coex+value_f_coex+value_k_coex)/float(c)
-					"""
+					#print k[1],len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K)
+
 					value_p=0.0
 					value_c=0.0
 					value_f=0.0
 					value_r=0.0
 					value_k=0.0
 					c=0
+					
+					
 					for j in set(temp_P):
 						if fisher_one_occurence["P"].has_key(j):
 							value_p=value_p+ fisher_one_occurence["P"][j]
@@ -238,7 +206,7 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue):
 						else:
 							c=c+1
 							#value_p=value_p+ fisher_one_occurence2["P"][j]
-
+					
 					for j in set(temp_C):
 						if fisher_one_occurence["C"].has_key(j):
 							value_c=value_c+ fisher_one_occurence["C"][j]
@@ -267,20 +235,25 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue):
 							#value_r=value_r+ fisher_one_occurence2["K"][j]
 					#print k[1],value_p+value_c+value_r+value_f+value_k,float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
 					#print k[1],float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K)),value_p+value_c+value_r+value_f+value_k,c																																								
-					go_value=(value_p+value_c+value_r+value_f+value_k)#/float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
-					
-					print k[1],len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K),c,value_p+value_c+value_r+value_f+value_k,go_value#,nodes_ic_value[i]
+					go_value=(value_p+value_c+value_r+value_f+value_k)*float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K)-c)
+					#go_value=(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
+					#print k[1],len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K),c,value_p+value_c+value_r+value_f+value_k,go_value#,nodes_ic_value[i]
 					#go_value=go_value+go_value_coex
 					#print go_value,go_value_coex
 					#go_value=(value_p+value_c+value_f)/float(len(temp_C)+len(temp_P)+len(temp_F))
 					#print k[1],value_p+value_c+value_r+value_f+value_k,float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K)),go_value
+					f5.write("\t".join(k[1])+"\t"+str(go_value)+"\t"+str(value_p+value_c+value_r+value_f+value_k)+"\t"+str(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))+"\n")
+
 					if go_value>nodes_ic_value[i]:
 						nodes_ic_value[i]=go_value
-						print k[1],nodes_ic_value[i]
+
+						#print k[1],nodes_ic_value[i]
 						nodes_ic_path[i]=k[1]
 						#print i,k[1],go_value
 					#print i,k[1],k[0],go_value,float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F))
+					#print i,go_value,nodes_ic_value[i],k
 					count=count+1
+				
 	#for i in nodes_ic_path:
 	#	print i,nodes_ic_path[i],nodes_ic_value[i]
 	nodes_ic=list(set(sum(nodes_ic_path.values(),[])+start_nodes))
