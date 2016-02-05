@@ -281,7 +281,7 @@ else:
 	print val
 	val=map(int, val.split(","))
 tissue_expr,tissue_value=expression(folder+graph_choice+"/PA_basal.txt",val)
-tissue_expr=expression_paxdb("RECTUM.txt")
+tissue_expr=expression_paxdb("HEART.txt")
 
 mcn(nodes,graph.nodes(),graph,tissue_expr,graph_choice,start_nodes)
 
