@@ -8,6 +8,13 @@ from operator import itemgetter
 import matplotlib.pyplot as plt
 
 def load_go_term(graph_choice,tissue):
+	f1=open("../db/generate_svm_model/general_trends/"+tissue+".txt","r")
+	trends=[]
+	seq=f1.readline()
+	seq=f1.readline()
+	trends.append(seq.strip().split("\t"))
+	seq=f1.readline()
+	trends.append(seq.strip().split("\t"))
 	graph_go_term={}
 	fisher_one_occurence={}
 	fisher_one_occurence2={}
@@ -31,7 +38,7 @@ def load_go_term(graph_choice,tissue):
 		seq=f1.readline()
 		while(seq!=""):
 			seq=seq.strip().split("\t")
-			fisher_one_occurence[i][seq[0]]=float(seq[3])
+			fisher_one_occurence[i][seq[0]]=float(seq[5])
 			seq=f1.readline()
 
 		f1=open("fisher_test2/"+i+"fisher.txt","r")
@@ -41,7 +48,7 @@ def load_go_term(graph_choice,tissue):
 			fisher_one_occurence2[i][seq[0]]=float(seq[1])
 			seq=f1.readline()
 	
-	return graph_go_term,fisher_one_occurence,fisher_one_occurence2
+	return graph_go_term,fisher_one_occurence,fisher_one_occurence2,trends
 
 def load_input_list(file):
 	f1=open(file,"r")
@@ -77,14 +84,14 @@ def expression_paxdb(file,graph):
 	seq=f1.readline()
 	while(seq!=""):
 		seq=seq.strip().split("\t")
-		tissue_expr[seq[0]]=float(seq[3])
+		tissue_expr[seq[0]]=float(seq[4])
 		seq=f1.readline()
 	return tissue_expr
 
 f5=open("ic2/nodes_graph.txt","w")
 f6=open("ic2/graph.txt","w")
 def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue,maxmin):
-	graph_go_term,fisher_one_occurence,fisher_one_occurence2=load_go_term(graph_choice,tissue)
+	graph_go_term,fisher_one_occurence,fisher_one_occurence2,trends=load_go_term(graph_choice,tissue)
 	path={}
 	removable=[]
 	path_prob={}
@@ -100,7 +107,7 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue,maxmi
 		path_value[i]=0.0
 		path_count[i]={}
 		if maxmin=="0":
-			nodes_ic_value[i]=1000000
+			nodes_ic_value[i]=100000
 		else:
 			nodes_ic_value[i]=-1
 		nodes_ic_path[i]=[]
@@ -164,7 +171,7 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue,maxmi
 
 	#graph_go_term,fisher_one_occurence
 	for i in path_count:
-		temp=[]
+		
 		if len(path_count[i])==1:
 			nodes_ic_path[i]=path_count[i].values()[0]
 			#flow.append(path_count[i].values()[0])
@@ -176,7 +183,7 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue,maxmi
 			for k in sorted_path_count:
 				
 				if k[0]>=mean:
-
+					temp=[]
 					temp_C=[]
 					temp_P=[]
 					temp_F=[]
@@ -184,6 +191,7 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue,maxmi
 					temp_K=[]
 					
 					for j in k[1]:
+
 						if graph_go_term["P"].has_key(j):
 							temp_P.extend(graph_go_term["P"][j])
 						if graph_go_term["K"].has_key(j):
@@ -240,42 +248,25 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue,maxmi
 							temp.append(fisher_one_occurence["K"][j])
 						else:
 							c=c+1
-
-							#value_r=value_r+ fisher_one_occurence2["K"][j]
-					#print k[1],value_p+value_c+value_r+value_f+value_k,float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
-					#print k[1],float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K)),value_p+value_c+value_r+value_f+value_k,c																																								
-					go_value=((value_p+value_c+value_r+value_f+value_k))/float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
-					#go_value=(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
-					print k[1],len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K),c,value_p+value_c+value_r+value_f+value_k,go_value#,nodes_ic_value[i]
-					#go_value=go_value+go_value_coex
-					#print go_value,go_value_coex
-					#go_value=(value_p+value_c+value_f)/float(len(temp_C)+len(temp_P)+len(temp_F))
-					#print k[1],value_p+value_c+value_r+value_f+value_k,float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K)),go_value
-					den=float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
+					#print i,k,len(temp)		
+					#n, (smin, smax), sm, sv, ss, sk= scipy.stats.describe(temp)
+					#print k[1],len(temp),sm,sv,trends[0][1],trends[0][2],sm-float(trends[0][1]),sv-float(trends[0][2])
+					go_value=(value_p+value_c+value_r+value_f+value_k)/float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
+					#go_value=math.fabs(sm-float(trends[0][1]))+math.fabs(sv-float(trends[0][2]))
 					
 					f5.write("\t".join(k[1])+"\t"+str(go_value)+"\t"+str(np.mean(temp))+"\t"+str(value_p+value_c+value_r+value_f+value_k)+"\t"+str(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))+"\n")
-					#go_value=np.mean(temp)
 					
-					#plt.hist(temp)
-					#plt.show()
-					#print k,go_value,np.mean(temp),len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K),value_p+value_c+value_r+value_f+value_k
 					if maxmin=="0":
 						if go_value<nodes_ic_value[i]:
 							nodes_ic_value[i]=go_value
-							f5.write(">"+"\t".join(k[1])+"\t"+str(go_value)+"\t"+str(np.mean(temp))+"\t"+str(value_p+value_c+value_r+value_f+value_k)+"\t"+str(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))+"\t"+str(c)+"\n")
-
-							#print k[1],nodes_ic_value[i]
+							f5.write(">"+"\t".join(k[1])+"\t"+str(go_value)+"\t"+str(np.mean(temp))+"\t"+str(value_p+value_c+value_r+value_f+value_k)+"\t"+str(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))+"\n")
 							nodes_ic_path[i]=k[1]
-							#print i,k[1],go_value
+						
 					else:
 						if go_value>nodes_ic_value[i]:
 							nodes_ic_value[i]=go_value
-							f5.write(">"+"\t".join(k[1])+"\t"+str(go_value/den)+"\t"+str(np.mean(temp))+"\t"+str(value_p+value_c+value_r+value_f+value_k)+"\t"+str(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))+"\n")
-
-							#print k[1],nodes_ic_value[i]
+							f5.write(">"+"\t".join(k[1])+"\t"+str(go_value)+"\t"+str(np.mean(temp))+"\t"+str(value_p+value_c+value_r+value_f+value_k)+"\t"+str(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))+"\n")
 							nodes_ic_path[i]=k[1]
-					#print i,k[1],go_value,(value_p+value_c+value_r+value_f+value_k),float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F))
-					#print i,go_value,nodes_ic_value[i],k
 					count=count+1
 			
 	for i in nodes_ic_path:
@@ -285,7 +276,7 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue,maxmi
 	
 	#flow=list(set(sum(flow,[])+start_nodes))
 	print "nodes_ic",len(nodes_ic)
-	#print "flow",len(flow)
+	#print "flow",len(set(flow))
 	fishertest.load(nodes_ic,0.05,["C","P","F","R","K","O","KDr","KDi","DB","Or","VH"],graph_choice,path_def="ic2/",single=sys.argv[3])
 	#fishertest.load(flow,0.05,["C","P","F","R","K","O","KDr","KDi","DB","Or","VH"],graph_choice,path_def="flow/",single=sys.argv[3])
 
