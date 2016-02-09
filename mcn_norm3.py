@@ -8,6 +8,14 @@ from operator import itemgetter
 import matplotlib.pyplot as plt
 
 def load_go_term(graph_choice,tissue):
+	f1=open("../db/generate_svm_model/intact_tissue/"+tissue+".txt","r")
+	seq=f1.readline()
+	tissue_protein_prob={}
+	while(seq!=""):
+		seq=seq.strip().split("\t")
+		tissue_protein_prob[seq[0]]=float(seq[1])
+		seq=f1.readline()
+
 	f1=open("../db/generate_svm_model/general_trends/"+tissue+".txt","r")
 	trends=[]
 	seq=f1.readline()
@@ -38,7 +46,7 @@ def load_go_term(graph_choice,tissue):
 		seq=f1.readline()
 		while(seq!=""):
 			seq=seq.strip().split("\t")
-			fisher_one_occurence[i][seq[0]]=float(seq[5])
+			fisher_one_occurence[i][seq[0]]=float(seq[4])
 			seq=f1.readline()
 
 		f1=open("fisher_test2/"+i+"fisher.txt","r")
@@ -48,7 +56,7 @@ def load_go_term(graph_choice,tissue):
 			fisher_one_occurence2[i][seq[0]]=float(seq[1])
 			seq=f1.readline()
 	
-	return graph_go_term,fisher_one_occurence,fisher_one_occurence2,trends
+	return graph_go_term,fisher_one_occurence,fisher_one_occurence2,trends,tissue_protein_prob
 
 def load_input_list(file):
 	f1=open(file,"r")
@@ -91,7 +99,7 @@ def expression_paxdb(file,graph):
 f5=open("ic2/nodes_graph.txt","w")
 f6=open("ic2/graph.txt","w")
 def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue,maxmin):
-	graph_go_term,fisher_one_occurence,fisher_one_occurence2,trends=load_go_term(graph_choice,tissue)
+	graph_go_term,fisher_one_occurence,fisher_one_occurence2,trends,tissue_protein_prob=load_go_term(graph_choice,tissue)
 	path={}
 	removable=[]
 	path_prob={}
@@ -189,9 +197,9 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue,maxmi
 					temp_F=[]
 					temp_R=[]
 					temp_K=[]
-					
+					temp_prob=[]
 					for j in k[1]:
-
+						temp_prob.append(tissue_protein_prob[j])
 						if graph_go_term["P"].has_key(j):
 							temp_P.extend(graph_go_term["P"][j])
 						if graph_go_term["K"].has_key(j):
@@ -215,7 +223,7 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue,maxmi
 					for j in set(temp_P):
 						if fisher_one_occurence["P"].has_key(j):
 							value_p=value_p+ fisher_one_occurence["P"][j]
-							temp.append(fisher_one_occurence["P"][j])
+							#temp.append(fisher_one_occurence["P"][j])
 							#coex_temp_P.append(fisher_one_occurence["P"][j])
 						else:
 							c=c+1
@@ -224,34 +232,36 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue,maxmi
 					for j in set(temp_C):
 						if fisher_one_occurence["C"].has_key(j):
 							value_c=value_c+ fisher_one_occurence["C"][j]
-							temp.append(fisher_one_occurence["C"][j])
+							#temp.append(fisher_one_occurence["C"][j])
 						else:
 							c=c+1
 							#value_c=value_c+ fisher_one_occurence2["C"][j]
 					for j in set(temp_R):
 						if fisher_one_occurence["R"].has_key(j):
 							value_r=value_r+ fisher_one_occurence["R"][j]
-							temp.append(fisher_one_occurence["R"][j])
+							#temp.append(fisher_one_occurence["R"][j])
 						else:
 							c=c+1
 							#value_r=value_r+ fisher_one_occurence2["R"][j]
 					for j in set(temp_F):
 						if fisher_one_occurence["F"].has_key(j):
 							value_f=value_f+ fisher_one_occurence["F"][j]
-							temp.append(fisher_one_occurence["F"][j])
+							#temp.append(fisher_one_occurence["F"][j])
 						else:
 							c=c+1
 							#value_r=value_r+ fisher_one_occurence2["F"][j]
 					for j in set(temp_K):
 						if fisher_one_occurence["K"].has_key(j):
 							value_k=value_k+ fisher_one_occurence["K"][j]
-							temp.append(fisher_one_occurence["K"][j])
+							#temp.append(fisher_one_occurence["K"][j])
 						else:
 							c=c+1
 					#print i,k,len(temp)		
 					#n, (smin, smax), sm, sv, ss, sk= scipy.stats.describe(temp)
 					#print k[1],len(temp),sm,sv,trends[0][1],trends[0][2],sm-float(trends[0][1]),sv-float(trends[0][2])
-					go_value=(value_p+value_c+value_r+value_f+value_k)/float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
+					go_value=(value_p*value_c*value_r*value_f*value_k)*float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
+					print k[1],len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K),go_value,scipy.stats.mstats.gmean(temp_prob)
+					go_value=scipy.stats.mstats.gmean(temp_prob)
 					#go_value=math.fabs(sm-float(trends[0][1]))+math.fabs(sv-float(trends[0][2]))
 					
 					f5.write("\t".join(k[1])+"\t"+str(go_value)+"\t"+str(np.mean(temp))+"\t"+str(value_p+value_c+value_r+value_f+value_k)+"\t"+str(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))+"\n")
