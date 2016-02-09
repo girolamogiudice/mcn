@@ -82,6 +82,7 @@ def expression_paxdb(file,graph):
 	return tissue_expr
 
 f5=open("ic2/nodes_graph.txt","w")
+f6=open("ic2/graph.txt","w")
 def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue,maxmin):
 	graph_go_term,fisher_one_occurence,fisher_one_occurence2=load_go_term(graph_choice,tissue)
 	path={}
@@ -99,7 +100,7 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue,maxmi
 		path_value[i]=0.0
 		path_count[i]={}
 		if maxmin=="0":
-			nodes_ic_value[i]=100000
+			nodes_ic_value[i]=1000000
 		else:
 			nodes_ic_value[i]=-1
 		nodes_ic_path[i]=[]
@@ -250,17 +251,18 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue,maxmi
 					#print go_value,go_value_coex
 					#go_value=(value_p+value_c+value_f)/float(len(temp_C)+len(temp_P)+len(temp_F))
 					#print k[1],value_p+value_c+value_r+value_f+value_k,float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K)),go_value
+					den=float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
 					
 					f5.write("\t".join(k[1])+"\t"+str(go_value)+"\t"+str(np.mean(temp))+"\t"+str(value_p+value_c+value_r+value_f+value_k)+"\t"+str(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))+"\n")
-					go_value=np.mean(temp)
-					print go_value,np.mean(temp)
+					#go_value=np.mean(temp)
+					
 					#plt.hist(temp)
 					#plt.show()
 					#print k,go_value,np.mean(temp),len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K),value_p+value_c+value_r+value_f+value_k
 					if maxmin=="0":
 						if go_value<nodes_ic_value[i]:
 							nodes_ic_value[i]=go_value
-							f5.write(">"+"\t".join(k[1])+"\t"+str(go_value)+"\t"+str(np.mean(temp))+"\t"+str(value_p+value_c+value_r+value_f+value_k)+"\t"+str(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))+"\n")
+							f5.write(">"+"\t".join(k[1])+"\t"+str(go_value)+"\t"+str(np.mean(temp))+"\t"+str(value_p+value_c+value_r+value_f+value_k)+"\t"+str(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))+"\t"+str(c)+"\n")
 
 							#print k[1],nodes_ic_value[i]
 							nodes_ic_path[i]=k[1]
@@ -268,15 +270,16 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue,maxmi
 					else:
 						if go_value>nodes_ic_value[i]:
 							nodes_ic_value[i]=go_value
-							f5.write(">"+"\t".join(k[1])+"\t"+str(go_value)+"\t"+str(np.mean(temp))+"\t"+str(value_p+value_c+value_r+value_f+value_k)+"\t"+str(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))+"\n")
+							f5.write(">"+"\t".join(k[1])+"\t"+str(go_value/den)+"\t"+str(np.mean(temp))+"\t"+str(value_p+value_c+value_r+value_f+value_k)+"\t"+str(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))+"\n")
 
 							#print k[1],nodes_ic_value[i]
 							nodes_ic_path[i]=k[1]
 					#print i,k[1],go_value,(value_p+value_c+value_r+value_f+value_k),float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F))
 					#print i,go_value,nodes_ic_value[i],k
 					count=count+1
-				
-	#for i in nodes_ic_path:
+			
+	for i in nodes_ic_path:
+		f6.write(i[0]+"\t"+i[1]+"\t"+"\t".join(nodes_ic_path[i])+"\n")
 	#	print i,nodes_ic_path[i],nodes_ic_value[i]
 	nodes_ic=list(set(sum(nodes_ic_path.values(),[])+start_nodes))
 	
