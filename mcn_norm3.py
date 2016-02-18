@@ -46,7 +46,7 @@ def load_go_term(graph_choice,tissue):
 		seq=f1.readline()
 		while(seq!=""):
 			seq=seq.strip().split("\t")
-			fisher_one_occurence[i][seq[0]]=float(seq[4])
+			fisher_one_occurence[i][seq[0]]=float(seq[5])
 			seq=f1.readline()
 
 		f1=open("fisher_test2/"+i+"fisher.txt","r")
@@ -259,13 +259,16 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue,maxmi
 					#print i,k,len(temp)		
 					#n, (smin, smax), sm, sv, ss, sk= scipy.stats.describe(temp)
 					#print k[1],len(temp),sm,sv,trends[0][1],trends[0][2],sm-float(trends[0][1]),sv-float(trends[0][2])
-					go_value=(value_p*value_c*value_r*value_f*value_k)*float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
-					print k[1],len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K),go_value,scipy.stats.mstats.gmean(temp_prob)
-					go_value=scipy.stats.mstats.gmean(temp_prob)
+					#go_value=(value_p*value_c*value_r*value_f*value_k)*float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
+					go_value=(value_p+value_c+value_r+value_f+value_k)/float(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))
+					
+					#print k[1],len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K),go_value,scipy.stats.mstats.gmean(temp_prob)
+					#go_value=scipy.stats.mstats.gmean(temp_prob)
+					#go_value=np.mean(temp_prob)
+
 					#go_value=math.fabs(sm-float(trends[0][1]))+math.fabs(sv-float(trends[0][2]))
-					
 					f5.write("\t".join(k[1])+"\t"+str(go_value)+"\t"+str(np.mean(temp))+"\t"+str(value_p+value_c+value_r+value_f+value_k)+"\t"+str(len(temp_C)+len(temp_P)+len(temp_R)+len(temp_F)+len(temp_K))+"\n")
-					
+
 					if maxmin=="0":
 						if go_value<nodes_ic_value[i]:
 							nodes_ic_value[i]=go_value
@@ -344,7 +347,7 @@ fishertest.load(list(set(start_nodes)),0.05,["C","P","F","R","K","O","KDr","KDi"
 nodes=list(set(start_nodes).intersection(set(graph_nodes)))
 
 folder="tissue_expr_norm/"
-for i in range(0,21,1):
+for i in range(0,22,1):
 	print str(i)+" "+pax_db[i]
 val=raw_input()
 if "," not in val:
