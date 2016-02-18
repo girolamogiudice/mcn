@@ -128,7 +128,7 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue,maxmi
 			seq=f1.readline()
 
 	to_remove=[]
-
+	minimum=min(tissue_expr.values())
 	for i in seek:
 		if len(seek[i])>0:
 			for j in seek[i]:
@@ -149,18 +149,17 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue,maxmi
 					path[key].append(node_list)
 					path_coex=[]
 					path_exp=[]
+					expr_coex_prob=0.0
 					for k in range(len(node_list[0:-1])):
 							
-						print node_list[k],graph[node_list[k]][node_list[k+1]]["coex"][1]
 						if k==0:
 							path_coex.append(graph[node_list[k]][node_list[k+1]]["coex"][1])
 						if k!=0:
 							path_coex.append(graph[node_list[k]][node_list[k+1]]["coex"][1])
 							if tissue_expr.has_key(node_list[k]):
-								print k,min(tissue_expr.values())
 								path_exp.append(tissue_expr[node_list[k]])
 							else:
-								path_exp.append(0.0001)
+								path_exp.append(minimum)
 					
 					removable.append(node_list[1:-1])
 					seq=f1.readline()
@@ -171,15 +170,8 @@ def mcn(nodes,graph_nodes,graph,expression,graph_choice,start_nodes,tissue,maxmi
 					val2=scipy.stats.mstats.gmean(path_coex)
 					total_prob=math.sqrt(val1*val2)
 					path_count[key][total_prob]=node_list
-					#print key,node_list,total_prob,count
 					count=count+1
-	#flow=[]
-	#for j in path_count:
-	#	flow.append(path_count[j][sorted(path_count[j])[::-1][0]])
 	nodes_ic=[]
-	
-
-	#graph_go_term,fisher_one_occurence
 	for i in path_count:
 		
 		if len(path_count[i])==1:
